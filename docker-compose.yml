@@ -1,0 +1,70 @@
+version: '3.7'
+services:
+    postgres:
+        build: ./docker-image/postgres-with-wal-g/
+        image: stephaneklein/postgres-with-walg:12.2-alpine-walg0.2.15
+        environment:
+            PGUSER: postgres
+            PGPASSWORD: password
+            POSTGRES_USER: postgres
+            POSTGRES_DB: postgres
+            POSTGRES_PASSWORD: password
+            AWS_ACCESS_KEY_ID: "admin"
+            AWS_SECRET_ACCESS_KEY: "password"
+            WALE_S3_PREFIX: "s3://walg/backup"
+            AWS_ENDPOINT: "http://s3:9000"
+            AWS_S3_FORCE_PATH_STYLE: "true"
+            AWS_REGION: us-east-1
+            WALG_COMPRESSION_METHOD: brotli
+        ports:
+        - "5432:5432"
+        volumes:
+        - ./volumes/postgres/:/var/lib/postgresql/data/
+
+    s3:
+        image: minio/minio:RELEASE.2020-03-25T07-03-04Z
+        environment:
+            MINIO_ACCESS_KEY: admin
+            MINIO_SECRET_KEY: password
+        ports:
+        - "9000:9000"
+        volumes:
+            - ./volumes/minio/:/data
+        entrypoint: sh
+        command: >
+            -c 'mkdir -p /data/walg
+            && /usr/bin/minio server /data'
+
+    wal-g:
+        build: ./docker-image/wal-g/
+        image: stephaneklein/wal-g:v0.2.15-alpine3.11.5
+        command: sleep 1000d
+        environment:
+            PGHOST: postgres
+            PGPORT: 5432
+            PGUSER: postgres
+            PGPASSWORD: password
+            AWS_ACCESS_KEY_ID: "admin"
+            AWS_SECRET_ACCESS_KEY: "password"
+            WALE_S3_PREFIX: "s3://my-minio-bucket/sub-dir"
+            AWS_ENDPOINT: "http://s3:9000"
+            AWS_S3_FORCE_PATH_STYLE: "true"
+            AWS_REGION: us-east-1
+
+    postgres2:
+        build: ./docker-image/postgres-with-wal-g/
+        image: stephaneklein/postgres-with-walg:12.2-alpine-walg0.2.15
+        environment:
+            PGUSER: postgres
+            PGPASSWORD: password
+            POSTGRES_USER: postgres
+            POSTGRES_DB: postgres
+            POSTGRES_PASSWORD: password
+            AWS_ACCESS_KEY_ID: "admin"
+            AWS_SECRET_ACCESS_KEY: "password"
+            WALE_S3_PREFIX: "s3://walg/backup"
+            AWS_ENDPOINT: "http://s3:9000"
+            AWS_S3_FORCE_PATH_STYLE: "true"
+            AWS_REGION: us-east-1
+        volumes:
+        - ./volumes/postgres2/:/var/lib/postgresql/data/
