@@ -66,5 +66,6 @@ services:
             AWS_ENDPOINT: "http://s3:9000"
             AWS_S3_FORCE_PATH_STYLE: "true"
             AWS_REGION: us-east-1
+            WALG_COMPRESSION_METHOD: brotli
         volumes:
         - ./volumes/postgres2/:/var/lib/postgresql/data/

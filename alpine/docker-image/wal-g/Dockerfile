@@ -16,10 +16,6 @@ RUN set -ex \
      && make \
      && make install
 
-ENV USE_LZO=1
-
-RUN apk add lzo-dev
-
 RUN set -ex \
      && git clone https://github.com/wal-g/wal-g/  $GOPATH/src/wal-g \
      && cd $GOPATH/src/wal-g/ \

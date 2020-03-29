@@ -2,7 +2,7 @@
 
 This folder contains the Debian version.
 
-Project status: this is a draft in work in progress. I'm blocked by this issue https://github.com/wal-g/wal-g/issues/611
+Project status: this is a draft in work in progress.
 
 ```
 $ docker-compose build wal-g
@@ -32,21 +32,40 @@ $ ./scripts/query-on-postgres1.sh
 Execute first fullbackup on `postgres1`:
 
 ```
-$ docker-compose exec postgres bash -c '/wal-g backup-push -f $PGDATA'
+$ ./scripts/make-basebackup.sh
 ```
 
+
 ```
-postgres=# select * from pg_stat_archiver \gx
--[ RECORD 1 ]------+-----------------------------------------
-archived_count     | 3
-last_archived_wal  | 000000010000000000000002.00000060.backup
-last_archived_time | 2020-03-28 13:41:22.281225+00
+$ ./scripts/show_pg_stat_archiver.sh
+-[ RECORD 1 ]------+------------------------------
+archived_count     | 1
+last_archived_wal  | 000000010000000000000001
+last_archived_time | 2020-03-29 20:50:15.451962+00
 failed_count       | 0
 last_failed_wal    |
 last_failed_time   |
-stats_reset        | 2020-03-28 13:40:03.726216+00
+stats_reset        | 2020-03-29 20:50:14.330444+00
 ```
 
+```
+$ ./scripts/insert-fixtures.sh
+```
+
+wait 60s, next execute:
+
+```
+$ ./scripts/show_pg_stat_archiver.sh
+select * from pg_stat_archiver;
+-[ RECORD 1 ]------+------------------------------
+archived_count     | 5
+last_archived_wal  | 000000010000000000000004
+last_archived_time | 2020-03-29 20:55:15.120382+00
+failed_count       | 0
+last_failed_wal    |
+last_failed_time   |
+stats_reset        | 2020-03-29 20:50:14.330444+00
+```
 
 ```
 $ docker-compose stop 

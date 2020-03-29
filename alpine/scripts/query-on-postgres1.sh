@@ -3,4 +3,4 @@ set -e
 
 cd "$(dirname "$0")/../"
 
-docker-compose exec postgres sh -c "psql -U \$POSTGRES_USER \$POSTGRES_DB -c 'SELECT email, created_at FROM contacts;'"
+docker-compose exec postgres sh -c "psql -U \$POSTGRES_USER \$POSTGRES_DB -c 'SELECT count(*) FROM contacts;'"

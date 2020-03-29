@@ -55,4 +55,5 @@ stats_reset        | 2020-03-28 13:40:03.726216+00
 
 ```
 $ docker-compose stop 
-$ docker-compose exec postgres bash -c 'touch $PGDATA/recovery.signal'
+$ rm -rf volumes/postgres2/
+$ ./scripts/restore-pg2.sh
