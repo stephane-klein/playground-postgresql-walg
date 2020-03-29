@@ -1,10 +1,15 @@
-FROM golang:1.14.1-alpine3.11 AS builder
+FROM golang:1.14.1-buster AS builder
 
 ENV WALG_VERSION=v0.2.15
 ENV BROTLI_VERSION=v1.0.7
 
 RUN set -ex \
-     && apk add --no-cache wget cmake git build-base bash
+     && apt-get update -y \
+     && apt-get install --yes --no-install-recommends --no-install-suggests \
+     cmake \
+     liblzo2-dev \
+     lzop \
+     wget
 
 RUN set -ex \
      && cd /tmp \
@@ -15,6 +20,8 @@ RUN set -ex \
      && ../configure-cmake --disable-debug \
      && make \
      && make install
+
+ENV USE_LZO=1
 
 RUN set -ex \
      && git clone https://github.com/wal-g/wal-g/  $GOPATH/src/wal-g \
@@ -27,5 +34,5 @@ RUN set -ex \
      && install main/pg/wal-g / \
      && /wal-g --help
 
-FROM alpine:3.11.5
+FROM debian:buster
 COPY --from=builder /wal-g /
