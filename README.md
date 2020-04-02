@@ -1,19 +1,47 @@
 # POC wal-g - Archival and Restoration for Postgres
 
-Project status: this is a draft in work in progress.
+This POC is written as small scenario:
+
+1. start PostgreSQL instance 1
+2. create a schema and insert some data to instance 1
+3. create instance 1 full backup to Minio server (S3 like)
+4. insert other data to instance 1
+5. start and restore data to PostgreSQL instance 2
+6. check all data (first backup + [WAL data](https://www.postgresql.org/docs/12/wal-intro.html))
+
+## Some resources
+
+- [walg-g](https://github.com/wal-g/wal-g)
+- [25.3. Continuous Archiving and Point-in-Time Recovery (PITR)](https://www.postgresql.org/docs/12/continuous-archiving.html#BACKUP-PITR-RECOVERY)
+- [PostgreSQL Sauvegardes et Réplication](https://public.dalibo.com/exports/formation/manuels/formations/dba3/dba3.handout.html)
+- [MikeTangoEcho/postgres-walg](https://github.com/MikeTangoEcho/postgres-walg)
+- [PostgreSQL WAL Archiving with WAL-G and S3: Complete Walkthrough](https://www.fusionbox.com/blog/detail/postgresql-wal-archiving-with-wal-g-and-s3-complete-walkthrough/644/)
+
+## The test scenario
+
+Build Docker Images:
 
 ```
 $ ./scripts/build-wal-g-docker-image.sh
 $ docker-compose build
+```
+
+Start PostreSQL instance 1 and Minio (S3 like) server:
+
+```
 $ docker-compose up -d postgres1 s3
 ```
 
 Wait `postgres1` starting…
 
+Create database schema and insert some data to instance 1:
+
 ```
 $ ./scripts/pg1/load-seed.sh
 $ ./scripts/pg1/insert-fixtures.sh
 ```
+
+Check data inserted
 
 ```
 $ ./scripts/pg1/query.sh
@@ -23,12 +51,13 @@ $ ./scripts/pg1/query.sh
 (1 row)
 ```
 
-Execute first fullbackup on `postgres1`:
+Create instance 1 full backup to Minio server:
 
 ```
 $ ./scripts/pg1/make-basebackup.sh
 ```
 
+Check PostgreSQL instance 1 stats archiver informations:
 
 ```
 $ ./scripts/pg1/show-pg-stats-archiver.sh
@@ -42,6 +71,8 @@ last_failed_time   |
 stats_reset        | 2020-04-01 22:12:19.392116+00
 ```
 
+Insert other data (after first full backup):
+
 ```
 $ ./scripts/pg1/insert-fixtures.sh
 $ ./scripts/pg1/query.sh
@@ -51,7 +82,7 @@ $ ./scripts/pg1/query.sh
 (1 row)
 ```
 
-wait 60s, next execute:
+wait 60s and check PostgreSQL instance 1 stats archiver informations:
 
 ```
 $ ./scripts/pg1/show-pg-stats-archiver.sh
@@ -67,40 +98,13 @@ last_failed_time   |
 stats_reset        | 2020-04-01 22:12:19.392116+00
 ```
 
+Now, the purpose is to verify the instance 1 data restoration to PostgreSQL instance 2:
+
 ```
 $ ./scripts/pg2/restore.sh
 ```
 
-```
-$ docker-compose logs -f postgres2
-Attaching to poc-wal-g_postgres2_1
-postgres2_1  |
-postgres2_1  | PostgreSQL Database directory appears to contain a database; Skipping initialization
-postgres2_1  |
-postgres2_1  | 2020-04-01 22:16:22.523 GMT [1] LOG:  starting PostgreSQL 12.2 on x86_64-pc-linux-musl, compiled by gcc (Alpine 9.2.0) 9.2.0, 64-bit
-postgres2_1  | 2020-04-01 22:16:22.523 GMT [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
-postgres2_1  | 2020-04-01 22:16:22.523 GMT [1] LOG:  listening on IPv6 address "::", port 5432
-postgres2_1  | 2020-04-01 22:16:22.526 GMT [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
-postgres2_1  | 2020-04-01 22:16:22.589 GMT [21] LOG:  database system was interrupted; last known up at 2020-04-01 22:12:49 GMT
-postgres2_1  | 2020-04-01 22:16:22.591 GMT [21] LOG:  creating missing WAL directory "pg_wal/archive_status"
-postgres2_1  | ERROR: 2020/04/01 22:16:25.432649 Archive '00000002.history' does not exist.
-postgres2_1  | 2020-04-01 22:16:25.434 GMT [21] LOG:  starting archive recovery
-postgres2_1  | 2020-04-01 22:16:25.610 GMT [21] LOG:  restored log file "000000010000000000000003" from archive
-postgres2_1  | 2020-04-01 22:16:25.698 GMT [21] LOG:  redo starts at 0/3000028
-postgres2_1  | 2020-04-01 22:16:25.700 GMT [21] LOG:  consistent recovery state reached at 0/3000100
-postgres2_1  | 2020-04-01 22:16:25.700 GMT [1] LOG:  database system is ready to accept read only connections
-postgres2_1  | 2020-04-01 22:16:25.916 GMT [21] LOG:  restored log file "000000010000000000000004" from archive
-postgres2_1  | ERROR: 2020/04/01 22:16:25.971510 Archive '000000010000000000000005' does not exist.
-postgres2_1  | 2020-04-01 22:16:25.974 GMT [21] LOG:  redo done at 0/4001400
-postgres2_1  | 2020-04-01 22:16:25.974 GMT [21] LOG:  last completed transaction was at log time 2020-04-01 22:15:16.261152+00
-postgres2_1  | 2020-04-01 22:16:26.197 GMT [21] LOG:  restored log file "000000010000000000000004" from archive
-postgres2_1  | ERROR: 2020/04/01 22:16:26.239134 Archive '00000002.history' does not exist.
-postgres2_1  | 2020-04-01 22:16:26.241 GMT [21] LOG:  selected new timeline ID: 2
-postgres2_1  | 2020-04-01 22:16:26.765 GMT [21] LOG:  archive recovery complete
-postgres2_1  | ERROR: 2020/04/01 22:16:26.800650 Archive '00000001.history' does not exist.
-postgres2_1  | 2020-04-01 22:16:26.869 GMT [1] LOG:  database system is ready to accept connections
-postgres2_1  | INFO: 2020/04/01 22:16:26.931078 FILE PATH: 00000002.history.br
-```
+Wait instance 2 started...
 
 ```
 $ ./scripts/pg2/query.sh
@@ -109,3 +113,5 @@ $ ./scripts/pg2/query.sh
     20
 (1 row)
 ```
+
+If value is 20 then full data + WAL data are restored to instance 2.
