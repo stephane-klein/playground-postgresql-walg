@@ -106,8 +106,6 @@ postgres2_1  | INFO: 2020/04/01 22:16:26.931078 FILE PATH: 00000002.history.br
 $ ./scripts/pg2/query.sh
  count
 -------
-    10
+    20
 (1 row)
 ```
-
-=> error, it's must be `20`!

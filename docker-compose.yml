@@ -16,6 +16,8 @@ services:
             AWS_S3_FORCE_PATH_STYLE: "true"
             AWS_REGION: us-east-1
             WALG_COMPRESSION_METHOD: brotli
+            ARCHIVE_MODE: 'on'
+            ARCHIVE_TIMEOUT: 60
         ports:
         - "5432:5432"
         volumes:
@@ -37,6 +39,7 @@ services:
             AWS_S3_FORCE_PATH_STYLE: "true"
             AWS_REGION: us-east-1
             WALG_COMPRESSION_METHOD: brotli
+            ARCHIVE_MODE: 'off'
         volumes:
         - ./volumes/postgres2/:/var/lib/postgresql/data/
 
