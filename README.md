@@ -115,3 +115,35 @@ $ ./scripts/pg2/query.sh
 ```
 
 If value is 20 then full data + WAL data are restored to instance 2.
+
+## Configure encryption and decryption with OpenPGP standard
+
+First generate GnuPG key:
+
+```
+$ gpg2 --batch --passphrase '' --quick-gen-key wal-g-test-1
+```
+
+```
+$ gpg2 -K
+/Users/stephane/.gnupg/pubring.kbx
+----------------------------------
+...
+
+sec   rsa2048 2020-04-04 [SC] [expire : 2022-04-04]
+      576A8B01273901177B4229788C9D5E81FD721DD8
+uid          [  ultime ] wal-g-test-1
+ssb   rsa2048 2020-04-04 [E]
+```
+
+Export key:
+
+```
+$ mkdir -p ./keys
+$ gpg2 -a --export wal-g-test-1 > ./keys/wal-g-test-1.pub
+$ gpg2 -a --export-secret-keys wal-g-test-1 > ./keys/wal-g-test-1.private
+```
+
+Uncomment `WALG_PGP_KEY_PATH` variable env in `postgres1` and `postgres2` services in `docker-compose.yml`.
+
+Next, replay « The test scenario ».

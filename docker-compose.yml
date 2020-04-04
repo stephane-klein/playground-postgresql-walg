@@ -18,10 +18,12 @@ services:
             WALG_COMPRESSION_METHOD: brotli
             ARCHIVE_MODE: 'on'
             ARCHIVE_TIMEOUT: 60
+            #WALG_PGP_KEY_PATH: /keys/wal-g-test-1.pub
         ports:
         - "5432:5432"
         volumes:
         - ./volumes/postgres/:/var/lib/postgresql/data/
+        - ./keys/:/keys/
 
     postgres2:
         build: ./docker-image/postgres-with-wal-g/
@@ -40,8 +42,10 @@ services:
             AWS_REGION: us-east-1
             WALG_COMPRESSION_METHOD: brotli
             ARCHIVE_MODE: 'off'
+            #WALG_PGP_KEY_PATH: /keys/wal-g-test-1.private
         volumes:
         - ./volumes/postgres2/:/var/lib/postgresql/data/
+        - ./keys/:/keys/
 
     s3:
         image: minio/minio:RELEASE.2020-03-25T07-03-04Z
