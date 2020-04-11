@@ -1,7 +1,6 @@
 version: '3.7'
 services:
     postgres1:
-        build: ./docker-image/postgres-with-wal-g/
         image: stephaneklein/postgres-with-walg:12.2-alpine-walg0.2.15
         environment:
             PGUSER: postgres

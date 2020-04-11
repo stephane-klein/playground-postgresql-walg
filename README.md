@@ -22,8 +22,7 @@ This POC is written as small scenario:
 Build Docker Images:
 
 ```
-$ ./scripts/build-wal-g-docker-image.sh
-$ docker-compose build
+$ ./scripts/build-postgres-with-wal-g-docker-image.sh
 ```
 
 Start PostreSQL instance 1 and Minio (S3 like) server:
