@@ -1,6 +1,6 @@
-# POC wal-g - Archival and Restoration for Postgres
+# wal-g - Archival and Restoration for Postgres playground based on Docker
 
-This POC is written as small scenario:
+This playground is written as small scenario:
 
 1. start PostgreSQL instance 1
 2. create a schema and insert some data to instance 1
