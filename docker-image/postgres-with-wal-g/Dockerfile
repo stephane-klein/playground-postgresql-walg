@@ -1,5 +1,5 @@
-FROM stephaneklein/wal-g:v0.2.15-alpine3.11.5 AS wal-g
-FROM postgres:12.2-alpine
+FROM stephaneklein/wal-g:v2.0.1-alpine3.16 AS wal-g
+FROM postgres:15-alpine
 
 RUN apk update \
     && apk add gomplate
